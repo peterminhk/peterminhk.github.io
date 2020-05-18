@@ -2,7 +2,14 @@
 <html>
 
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Index</title>
+  <style>
+    .hide {
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
@@ -10,9 +17,73 @@
   <div>
     <a href="kakaotalk://kakaopay/web?url=https%3A%2F%2Fpeterminhk.github.io%2Fbaz.html">open</a>
   </div>
+  <div id="discount">
+    할인
+    <div>
+      <input role="button" type="radio" name="discount" id="discountA" value="1" onfocus="selectDiscount(this)">
+      <label for="discountA" role="text" aria-label="2000원 할인. 신한카드로 결제할 때만 적용됩니다.">2000원</label>
+      <div class="discount-assert hide" id="discountAAssert" aria-live="assertive">할인 적용을 위하여 결제수단이 신한카드로 선택되었습니다.</div>
+    </div>
+    <div>
+      <input type="radio" name="discount" id="discountB" value="2" onfocus="selectDiscount(this)">
+      <label for="discountB">현대카드 결제 시 1000원 할인</label>
+      <div class="discount-assert hide" id="discountBAssert" aria-live="assertive">할인 적용을 위하여 결제수단이 현대카드로 선택되었습니다.</div>
+    </div>
+  </div>
+  <div>
+    결제수단
+    <ul>
+      <li>머니</li>
+      <li>신한카드</li>
+      <li id="h-card" role="button" aria-label="현대카드" onclick="clickCard()">현대카드 blah blah</li>
+    </ul>
+  </div>
+  <div>
+    포인트: <input id="point" type="number">
+  </div>
+  <div id="notification" class="hide"></div>
   <script>
     const textEl = document.querySelector('#text');
-    textEl.innerHTML = navigator.userAgent;
+    // textEl.innerHTML = navigator.userAgent;
+
+    const hCardEl = document.querySelector('#h-card');
+
+    function clickCard() {
+      document.getElementsByName('discount')[0].focus();
+    }
+
+    function selectDiscount(el) {
+      let id;
+
+      const assertEls = document.getElementsByClassName('discount-assert');
+      for (let assertEl of assertEls) {
+        assertEl.classList.add('hide');
+      }
+
+      switch (el.value) {
+        case '1':
+          id = 'discountAAssert';
+          break;
+        case '2':
+          id = 'discountBAssert';
+          break;
+        default:
+          return;
+      }
+
+      document.getElementById(id).classList.remove('hide');
+      showNotification('테스트입니다.');
+    }
+
+    function showNotification(message) {
+      const el = document.getElementById('notification');
+      document.getElementById('notification').innerHTML = message;
+      el.style.display = 'block';
+      
+      setTimeout(() => {
+        el.style.display = 'hide';
+      }, 3000);
+    }
   </script>
 </body>
 
