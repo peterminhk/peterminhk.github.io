@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>iframe</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      padding: 16px;
+      background: #003;
+      color: #fff;
+    }
+
+    iframe {
+      border: 0;
+    }
+
+    a {
+      color: #80b0ff;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">outer <a href="content.html">content.html</a></div>
+  <iframe id="iframe" src="content.html" width="100%"></iframe>
+  <script>
+    document.body.onload = (event) => {
+      const iframeEl = document.getElementById('iframe');
+      iframeEl.height = window.innerHeight + 'px';
+      console.log(window);
+    }
+  </script>
+</body>
+
+</html>
