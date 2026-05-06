@@ -408,8 +408,8 @@
   .waveform-bars.native .bar { background: rgba(125,211,252,0.4); }
   .waveform-bars.mine .bar { background: rgba(110,231,183,0.4); }
 
-  /* Speed */
-  .speed-control {
+  /* Speed & options */
+  .options-row {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -418,7 +418,7 @@
     border-top: 1px solid var(--border);
   }
 
-  .speed-control label { font-size: 0.8rem; color: var(--text-dim); font-weight: 500; }
+  .options-row label { font-size: 0.8rem; color: var(--text-dim); font-weight: 500; }
 
   .speed-btns { display: flex; gap: 6px; }
 
@@ -436,6 +436,68 @@
 
   .speed-btn:hover { border-color: var(--text-dim); }
   .speed-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+  /* Toggle switch */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .toggle-row label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .toggle {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  .toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 3px;
+    top: 3px;
+    background: var(--text-dim);
+    border-radius: 50%;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .toggle input:checked + .toggle-track {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+  }
+
+  .toggle input:checked + .toggle-track::after {
+    transform: translateX(18px);
+    background: var(--accent);
+  }
 
   /* Tips */
   .tips {
@@ -565,7 +627,7 @@
       <div class="waveform-box" id="myWave"><span class="no-data">Record first above</span></div>
     </div>
 
-    <div class="speed-control">
+    <div class="options-row">
       <label>TTS Speed</label>
       <div class="speed-btns">
         <button class="speed-btn" onclick="setSpeed(0.6,this)">0.6×</button>
@@ -573,6 +635,14 @@
         <button class="speed-btn active" onclick="setSpeed(1,this)">1×</button>
         <button class="speed-btn" onclick="setSpeed(1.2,this)">1.2×</button>
       </div>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle">
+        <input type="checkbox" id="autoPlayToggle" checked>
+        <span class="toggle-track"></span>
+      </div>
+      <label for="autoPlayToggle">Auto-play after recording</label>
     </div>
   </div>
 
@@ -594,9 +664,7 @@ let audioChunks = [];
 let isRecording = false;
 
 // ── Cache ──
-// TTS cache: key = "text|voiceName|speed" → { blob, url }
 const ttsCache = new Map();
-// Current recording (not cached across sentences)
 let recUrl = null;
 
 function ttsCacheKey(text, voice, spd) {
@@ -632,6 +700,7 @@ const playNativeBtn = $('playNativeBtn');
 const playMineBtn = $('playMineBtn');
 const nativeWave = $('nativeWave');
 const myWave = $('myWave');
+const autoPlayToggle = $('autoPlayToggle');
 
 // ── API Key ──
 function loadApiKey() {
@@ -681,12 +750,11 @@ const COUNTRY_FLAGS = {
 function voiceLabel(name, gender) {
   const langCode = name.substring(0, 5);
   const region = COUNTRY_FLAGS[langCode] || langCode;
-  const shortName = name.substring(6); // e.g. Neural2-J
+  const shortName = name.substring(6);
   const g = gender === 'MALE' ? 'Male' : 'Female';
   return `${region} · ${shortName} (${g})`;
 }
 
-// Priority for sorting: Neural2 > Wavenet > Studio > Standard > others
 function voiceTypePriority(name) {
   if (name.includes('Neural2')) return 0;
   if (name.includes('Wavenet') || name.includes('WaveNet')) return 1;
@@ -722,7 +790,6 @@ function populateVoiceSelect(voices) {
     voiceSelect.appendChild(opt);
   });
 
-  // Restore previous selection if still available
   if (prev) {
     const match = [...voiceSelect.options].find(o => o.value === prev);
     if (match) voiceSelect.value = prev;
@@ -807,7 +874,6 @@ function navSentence(dir) {
 }
 
 function restoreAudioState() {
-  // Restore TTS cache state for current sentence
   const cached = getCachedTTS();
   if (cached) {
     playNativeBtn.disabled = false;
@@ -817,7 +883,6 @@ function restoreAudioState() {
     nativeWave.innerHTML = '<span class="no-data">Listen first above</span>';
   }
 
-  // Clear recording (not cached)
   if (recUrl) URL.revokeObjectURL(recUrl);
   recUrl = null;
   playMineBtn.disabled = true;
@@ -848,7 +913,7 @@ async function callGoogleTTS(text) {
   }
 
   const voiceName = voiceSelect.value;
-  const langCode = voiceName.substring(0, 5); // e.g. en-US
+  const langCode = voiceName.substring(0, 5);
   const gender = voiceSelect.selectedOptions[0].dataset.gender;
 
   const body = {
@@ -880,7 +945,6 @@ async function callGoogleTTS(text) {
   }
 
   const data = await resp.json();
-  // data.audioContent is base64 encoded MP3
   const audioBytes = atob(data.audioContent);
   const arr = new Uint8Array(audioBytes.length);
   for (let i = 0; i < audioBytes.length; i++) arr[i] = audioBytes.charCodeAt(i);
@@ -891,7 +955,6 @@ async function playTTS() {
   if (sentences.length === 0) { showStatus('Please enter text first', 'error'); return; }
   if (!apiKey) { showStatus('Please enter your API key first', 'error'); return; }
 
-  // Check cache first
   const cached = getCachedTTS();
   if (cached) {
     ttsBtn.classList.add('playing');
@@ -962,8 +1025,16 @@ async function toggleRec() {
       recUrl = URL.createObjectURL(blob);
       playMineBtn.disabled = false;
       renderWaveform(myWave, 'mine');
-      showStatus('Recording done — compare below!', '');
       stream.getTracks().forEach(t => t.stop());
+
+      if (autoPlayToggle.checked) {
+        showStatus('Playing back your recording...', '');
+        const audio = new Audio(recUrl);
+        audio.play();
+        audio.onended = () => showStatus('Recording done — compare below!', '');
+      } else {
+        showStatus('Recording done — compare below!', '');
+      }
     };
 
     mediaRecorder.start();
