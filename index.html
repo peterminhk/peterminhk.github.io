@@ -1,93 +1,1024 @@
-<!doctype html>
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Index</title>
-  <style>
-    .hide {
-      display: none;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pronunciation Mirror</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-hover: #22252f;
+    --border: #2a2d3a;
+    --text: #e8e6e3;
+    --text-dim: #8b8d97;
+    --accent: #6ee7b7;
+    --accent-dim: rgba(110, 231, 183, 0.12);
+    --red: #f87171;
+    --red-dim: rgba(248, 113, 113, 0.12);
+    --blue: #7dd3fc;
+    --blue-dim: rgba(125, 211, 252, 0.12);
+    --radius: 14px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  /* API Key section */
+  .api-section {
+    margin-bottom: 28px;
+  }
+
+  .api-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .api-row input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    padding: 12px 16px;
+    transition: border-color 0.2s;
+  }
+
+  .api-row input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .api-row input::placeholder { color: var(--text-dim); opacity: 0.5; }
+
+  .api-save-btn {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 1px solid var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .api-save-btn:hover {
+    background: rgba(110,231,183,0.2);
+  }
+
+  .api-status {
+    font-size: 0.78rem;
+    margin-top: 8px;
+    color: var(--text-dim);
+  }
+
+  .api-status.connected { color: var(--accent); }
+  .api-status.error { color: var(--red); }
+
+  label.section-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  /* Text input */
+  .input-section { margin-bottom: 28px; }
+
+  textarea {
+    width: 100%;
+    min-height: 130px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    line-height: 1.75;
+    padding: 18px 20px;
+    resize: vertical;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  textarea::placeholder { color: var(--text-dim); opacity: 0.6; }
+
+  /* Voice select */
+  .voice-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .voice-row label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  select {
+    flex: 1;
+    min-width: 180px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  select:focus { outline: none; border-color: var(--accent); }
+
+  /* Sentence nav */
+  .sentence-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    margin-bottom: 8px;
+  }
+
+  .current-sentence {
+    flex: 1;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text);
+    text-align: center;
+    padding: 0 16px;
+    font-style: italic;
+  }
+
+  .current-sentence.empty {
+    color: var(--text-dim);
+    font-style: normal;
+    font-size: 0.9rem;
+  }
+
+  .nav-btn {
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .nav-btn:hover:not(:disabled) {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .sentence-counter {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  /* Controls */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .control-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 24px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .control-btn .icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+  }
+
+  .control-btn .label { font-size: 0.85rem; font-weight: 600; }
+  .control-btn .sublabel { font-size: 0.75rem; color: var(--text-dim); }
+
+  .btn-tts .icon { background: var(--blue-dim); color: var(--blue); }
+  .btn-tts:hover { border-color: var(--blue); background: rgba(125,211,252,0.04); }
+  .btn-tts.playing { border-color: var(--blue); background: var(--blue-dim); }
+  .btn-tts.loading { opacity: 0.7; pointer-events: none; }
+
+  .btn-record .icon { background: var(--red-dim); color: var(--red); }
+  .btn-record:hover { border-color: var(--red); background: rgba(248,113,113,0.04); }
+  .btn-record.recording {
+    border-color: var(--red);
+    background: var(--red-dim);
+    animation: pulse-border 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(248,113,113,0); }
+  }
+
+  .status {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    padding: 8px 0;
+    min-height: 30px;
+  }
+
+  .status.error { color: var(--red); }
+  .status.rec { color: var(--red); }
+
+  /* Playback */
+  .playback-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .playback-section h3 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+  }
+
+  .playback-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+  }
+
+  .playback-row + .playback-row { border-top: 1px solid var(--border); }
+
+  .playback-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    width: 80px;
+    flex-shrink: 0;
+  }
+
+  .playback-label.native { color: var(--blue); }
+  .playback-label.mine { color: var(--accent); }
+
+  .play-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface-hover);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .play-btn:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .play-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+  .waveform-box {
+    flex: 1;
+    height: 38px;
+    background: var(--bg);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .waveform-box .no-data { font-size: 0.75rem; color: var(--text-dim); opacity: 0.5; }
+
+  .waveform-bars {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 100%;
+    padding: 4px 8px;
+    width: 100%;
+  }
+
+  .waveform-bars .bar {
+    flex: 1;
+    min-width: 2px;
+    border-radius: 1px;
+  }
+
+  .waveform-bars.native .bar { background: rgba(125,211,252,0.4); }
+  .waveform-bars.mine .bar { background: rgba(110,231,183,0.4); }
+
+  /* Speed */
+  .speed-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .speed-control label { font-size: 0.8rem; color: var(--text-dim); font-weight: 500; }
+
+  .speed-btns { display: flex; gap: 6px; }
+
+  .speed-btn {
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .speed-btn:hover { border-color: var(--text-dim); }
+  .speed-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+  /* Tips */
+  .tips {
+    background: var(--accent-dim);
+    border: 1px solid rgba(110,231,183,0.15);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin-top: 32px;
+  }
+
+  .tips h4 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .tips p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.7; }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .container > * { animation: fadeIn 0.5s ease-out backwards; }
+  .container > :nth-child(2) { animation-delay: 0.05s; }
+  .container > :nth-child(3) { animation-delay: 0.1s; }
+  .container > :nth-child(4) { animation-delay: 0.15s; }
+  .container > :nth-child(5) { animation-delay: 0.2s; }
+  .container > :nth-child(6) { animation-delay: 0.25s; }
+  .container > :nth-child(7) { animation-delay: 0.3s; }
+  .container > :nth-child(8) { animation-delay: 0.35s; }
+
+  @media (max-width: 500px) {
+    .container { padding: 24px 16px 60px; }
+    .header h1 { font-size: 1.7rem; }
+    .controls { grid-template-columns: 1fr; }
+    .playback-label { width: 60px; font-size: 0.8rem; }
+    .api-row { flex-direction: column; }
+    .api-row input { width: 100%; }
+  }
+</style>
 </head>
-
 <body>
-  <div id="text"></div>
-  <ul>
-    <li><a href="intent://kakaopay/pg?url=https://online-pay.kakao.com/pay/r1/95b53a62d1614505d0cd780a5aa815dc46a6ec0c56e5115680d7de72d7f1456c#Intent;scheme=kakaotalk;package=com.kakao.talk;end">android</a></li>
-    <li><a href="kakaotalk://kakaopay/web?url=https%3A%2F%2Fpeterminhk.github.io%2Fbaz.html">open</a></li>
-    <li><a href="inner/iframe.html">iframe</a></li>
-    <li><a href="inner/content.html">content layout</a></li>
-  </ul>
-  <div id="discount">
-    할인
-    <div>
-      <input role="button" type="radio" name="discount" id="discountA" value="1" onfocus="selectDiscount(this)">
-      <label for="discountA" role="text" aria-label="2000원 할인. 신한카드로 결제할 때만 적용됩니다.">2000원</label>
-      <div class="discount-assert hide" id="discountAAssert" aria-live="assertive">할인 적용을 위하여 결제수단이 신한카드로 선택되었습니다.</div>
+<div class="container">
+
+  <div class="header">
+    <h1>Pronunciation Mirror</h1>
+    <p>Paste English text, compare native pronunciation with yours</p>
+  </div>
+
+  <!-- API Key -->
+  <div class="api-section">
+    <label class="section-label">Google Cloud TTS API Key</label>
+    <div class="api-row">
+      <input type="password" id="apiKeyInput" placeholder="Enter your API key" />
+      <button class="api-save-btn" id="apiSaveBtn" onclick="saveApiKey()">Save</button>
     </div>
-    <div>
-      <input type="radio" name="discount" id="discountB" value="2" onfocus="selectDiscount(this)">
-      <label for="discountB">현대카드 결제 시 1000원 할인</label>
-      <div class="discount-assert hide" id="discountBAssert" aria-live="assertive">할인 적용을 위하여 결제수단이 현대카드로 선택되었습니다.</div>
+    <div class="api-status" id="apiStatus">Enter your API key to use natural voices</div>
+  </div>
+
+  <!-- Voice select -->
+  <div class="voice-row">
+    <label>Voice</label>
+    <select id="voiceSelect">
+      <option value="">— Enter API key to load voices —</option>
+    </select>
+  </div>
+
+  <!-- Text input -->
+  <div class="input-section">
+    <label class="section-label">English Text to Practice</label>
+    <textarea id="textInput" placeholder="Paste English sentences here to practice..."></textarea>
+  </div>
+
+  <!-- Sentence nav -->
+  <div class="sentence-nav">
+    <button class="nav-btn" id="prevBtn" disabled onclick="navSentence(-1)">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="current-sentence empty" id="curSentence">Enter text above to practice sentence by sentence</div>
+    <button class="nav-btn" id="nextBtn" disabled onclick="navSentence(1)">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3L11 8L6 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div class="sentence-counter" id="counter"></div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="control-btn btn-tts" id="ttsBtn" onclick="playTTS()">
+      <div class="icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span class="label">Listen to Native</span>
+      <span class="sublabel">Google Cloud TTS</span>
+    </button>
+
+    <button class="control-btn btn-record" id="recordBtn" onclick="toggleRec()">
+      <div class="icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span class="label">Record My Voice</span>
+      <span class="sublabel">Microphone</span>
+    </button>
+  </div>
+
+  <div id="status" class="status"></div>
+
+  <!-- Playback -->
+  <div class="playback-section">
+    <h3>Compare Playback</h3>
+    <div class="playback-row">
+      <span class="playback-label native">Native</span>
+      <button class="play-btn" id="playNativeBtn" onclick="replayNative()" disabled>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><polygon points="3,1 13,8 3,15"/></svg>
+      </button>
+      <div class="waveform-box" id="nativeWave"><span class="no-data">Listen first above</span></div>
+    </div>
+    <div class="playback-row">
+      <span class="playback-label mine">Mine</span>
+      <button class="play-btn" id="playMineBtn" onclick="playRec()" disabled>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><polygon points="3,1 13,8 3,15"/></svg>
+      </button>
+      <div class="waveform-box" id="myWave"><span class="no-data">Record first above</span></div>
+    </div>
+
+    <div class="speed-control">
+      <label>TTS Speed</label>
+      <div class="speed-btns">
+        <button class="speed-btn" onclick="setSpeed(0.6,this)">0.6×</button>
+        <button class="speed-btn" onclick="setSpeed(0.8,this)">0.8×</button>
+        <button class="speed-btn active" onclick="setSpeed(1,this)">1×</button>
+        <button class="speed-btn" onclick="setSpeed(1.2,this)">1.2×</button>
+      </div>
     </div>
   </div>
-  <div>
-    결제수단
-    <ul>
-      <li>머니</li>
-      <li>신한카드</li>
-      <li id="h-card" role="button" aria-label="현대카드" onclick="clickCard()">현대카드 blah blah</li>
-    </ul>
+
+  <div class="tips">
+    <h4>💡 Practice Tips</h4>
+    <p>Listen to the native pronunciation 2–3 times first, focusing on stress and rhythm. Then record yourself and compare using the playback below. Slowing down to 0.6×–0.8× helps you catch subtle details. Neural2 voices sound the most natural.</p>
   </div>
-  <div>
-    포인트: <input id="point" type="text" pattern="^-?\d*(\.\d+)?$">
-  </div>
-  <div id="notification" class="hide"></div>
-  <script>
-    const textEl = document.querySelector('#text');
-    // textEl.innerHTML = navigator.userAgent;
 
-    const hCardEl = document.querySelector('#h-card');
+</div>
 
-    function clickCard() {
-      document.getElementsByName('discount')[0].focus();
+<script>
+// ── State ──
+let sentences = [];
+let curIdx = 0;
+let speed = 1;
+let apiKey = '';
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+
+// ── Cache ──
+// TTS cache: key = "text|voiceName|speed" → { blob, url }
+const ttsCache = new Map();
+// Current recording (not cached across sentences)
+let recUrl = null;
+
+function ttsCacheKey(text, voice, spd) {
+  return `${text}|${voice}|${spd}`;
+}
+
+function getCachedTTS() {
+  const key = ttsCacheKey(sentences[curIdx], voiceSelect.value, speed);
+  return ttsCache.get(key) || null;
+}
+
+function setCachedTTS(blob) {
+  const key = ttsCacheKey(sentences[curIdx], voiceSelect.value, speed);
+  const url = URL.createObjectURL(blob);
+  ttsCache.set(key, { blob, url });
+  return url;
+}
+
+// ── Refs ──
+const $ = id => document.getElementById(id);
+const apiKeyInput = $('apiKeyInput');
+const apiStatusEl = $('apiStatus');
+const voiceSelect = $('voiceSelect');
+const textInput = $('textInput');
+const curSentence = $('curSentence');
+const prevBtn = $('prevBtn');
+const nextBtn = $('nextBtn');
+const counter = $('counter');
+const ttsBtn = $('ttsBtn');
+const recordBtn = $('recordBtn');
+const statusEl = $('status');
+const playNativeBtn = $('playNativeBtn');
+const playMineBtn = $('playMineBtn');
+const nativeWave = $('nativeWave');
+const myWave = $('myWave');
+
+// ── API Key ──
+function loadApiKey() {
+  try {
+    const saved = localStorage.getItem('gcloud_tts_key');
+    if (saved) {
+      apiKey = saved;
+      apiKeyInput.value = saved;
+      apiStatusEl.textContent = '✓ API key saved';
+      apiStatusEl.className = 'api-status connected';
+      loadVoices();
     }
+  } catch(e) {}
+}
 
-    function selectDiscount(el) {
-      let id;
+function saveApiKey() {
+  const key = apiKeyInput.value.trim();
+  if (!key) {
+    apiStatusEl.textContent = 'Please enter an API key';
+    apiStatusEl.className = 'api-status error';
+    return;
+  }
+  apiKey = key;
+  try { localStorage.setItem('gcloud_tts_key', key); } catch(e) {}
+  apiStatusEl.textContent = '✓ API key saved';
+  apiStatusEl.className = 'api-status connected';
+  loadVoices();
+}
 
-      const assertEls = document.getElementsByClassName('discount-assert');
-      for (let assertEl of assertEls) {
-        assertEl.classList.add('hide');
-      }
+// ── Voice Loading ──
+const FALLBACK_VOICES = [
+  { name: 'en-US-Neural2-J', gender: 'MALE' },
+  { name: 'en-US-Neural2-H', gender: 'FEMALE' },
+  { name: 'en-US-Wavenet-D', gender: 'MALE' },
+  { name: 'en-US-Wavenet-F', gender: 'FEMALE' },
+  { name: 'en-GB-Neural2-B', gender: 'MALE' },
+  { name: 'en-GB-Neural2-A', gender: 'FEMALE' },
+  { name: 'en-AU-Neural2-B', gender: 'MALE' },
+  { name: 'en-AU-Neural2-A', gender: 'FEMALE' },
+];
 
-      switch (el.value) {
-        case '1':
-          id = 'discountAAssert';
-          break;
-        case '2':
-          id = 'discountBAssert';
-          break;
-        default:
-          return;
-      }
+const COUNTRY_FLAGS = {
+  'en-US': '🇺🇸 US', 'en-GB': '🇬🇧 UK', 'en-AU': '🇦🇺 AU',
+  'en-IN': '🇮🇳 IN', 'en-CA': '🇨🇦 CA', 'en-ZA': '🇿🇦 ZA',
+};
 
-      document.getElementById(id).classList.remove('hide');
-      showNotification('테스트입니다.');
+function voiceLabel(name, gender) {
+  const langCode = name.substring(0, 5);
+  const region = COUNTRY_FLAGS[langCode] || langCode;
+  const shortName = name.substring(6); // e.g. Neural2-J
+  const g = gender === 'MALE' ? 'Male' : 'Female';
+  return `${region} · ${shortName} (${g})`;
+}
+
+// Priority for sorting: Neural2 > Wavenet > Studio > Standard > others
+function voiceTypePriority(name) {
+  if (name.includes('Neural2')) return 0;
+  if (name.includes('Wavenet') || name.includes('WaveNet')) return 1;
+  if (name.includes('Studio')) return 2;
+  if (name.includes('Standard')) return 3;
+  return 4;
+}
+
+function regionPriority(name) {
+  if (name.startsWith('en-US')) return 0;
+  if (name.startsWith('en-GB')) return 1;
+  if (name.startsWith('en-AU')) return 2;
+  return 3;
+}
+
+function populateVoiceSelect(voices) {
+  const prev = voiceSelect.value;
+  voiceSelect.innerHTML = '';
+
+  voices.sort((a, b) => {
+    const rp = regionPriority(a.name) - regionPriority(b.name);
+    if (rp !== 0) return rp;
+    const tp = voiceTypePriority(a.name) - voiceTypePriority(b.name);
+    if (tp !== 0) return tp;
+    return a.name.localeCompare(b.name);
+  });
+
+  voices.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.dataset.gender = v.gender;
+    opt.textContent = voiceLabel(v.name, v.gender);
+    voiceSelect.appendChild(opt);
+  });
+
+  // Restore previous selection if still available
+  if (prev) {
+    const match = [...voiceSelect.options].find(o => o.value === prev);
+    if (match) voiceSelect.value = prev;
+  }
+}
+
+async function loadVoices() {
+  if (!apiKey) {
+    populateVoiceSelect(FALLBACK_VOICES);
+    return;
+  }
+
+  voiceSelect.innerHTML = '<option value="">Loading voices...</option>';
+
+  try {
+    const url = `https://texttospeech.googleapis.com/v1/voices?key=${apiKey}&languageCode=en`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    const voices = (data.voices || [])
+      .filter(v => v.languageCodes.some(lc => lc.startsWith('en-')))
+      .map(v => ({
+        name: v.name,
+        gender: v.ssmlGender,
+        langCodes: v.languageCodes,
+      }));
+
+    if (voices.length === 0) throw new Error('No English voices found');
+
+    populateVoiceSelect(voices);
+  } catch (err) {
+    console.warn('Failed to load voices from API, using fallback:', err);
+    populateVoiceSelect(FALLBACK_VOICES);
+  }
+}
+
+loadApiKey();
+
+// ── Text parsing ──
+textInput.addEventListener('input', () => {
+  const text = textInput.value.trim();
+  if (!text) {
+    sentences = [];
+    curIdx = 0;
+    updateNav();
+    return;
+  }
+  sentences = text
+    .replace(/\n+/g, ' ')
+    .split(/(?<=[.!?])\s+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+  if (sentences.length === 0 && text.length > 0) sentences = [text];
+  curIdx = 0;
+  resetAllCaches();
+  updateNav();
+});
+
+function updateNav() {
+  if (sentences.length === 0) {
+    curSentence.textContent = 'Enter text above to practice sentence by sentence';
+    curSentence.classList.add('empty');
+    counter.textContent = '';
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+  curSentence.textContent = `"${sentences[curIdx]}"`;
+  curSentence.classList.remove('empty');
+  counter.textContent = `${curIdx + 1} / ${sentences.length}`;
+  prevBtn.disabled = curIdx === 0;
+  nextBtn.disabled = curIdx === sentences.length - 1;
+}
+
+function navSentence(dir) {
+  const ni = curIdx + dir;
+  if (ni < 0 || ni >= sentences.length) return;
+  curIdx = ni;
+  restoreAudioState();
+  updateNav();
+}
+
+function restoreAudioState() {
+  // Restore TTS cache state for current sentence
+  const cached = getCachedTTS();
+  if (cached) {
+    playNativeBtn.disabled = false;
+    renderWaveform(nativeWave, 'native');
+  } else {
+    playNativeBtn.disabled = true;
+    nativeWave.innerHTML = '<span class="no-data">Listen first above</span>';
+  }
+
+  // Clear recording (not cached)
+  if (recUrl) URL.revokeObjectURL(recUrl);
+  recUrl = null;
+  playMineBtn.disabled = true;
+  myWave.innerHTML = '<span class="no-data">Record first above</span>';
+
+  statusEl.textContent = '';
+  statusEl.className = 'status';
+}
+
+function resetAllCaches() {
+  ttsCache.forEach(v => URL.revokeObjectURL(v.url));
+  ttsCache.clear();
+  if (recUrl) URL.revokeObjectURL(recUrl);
+  recUrl = null;
+  playNativeBtn.disabled = true;
+  playMineBtn.disabled = true;
+  nativeWave.innerHTML = '<span class="no-data">Listen first above</span>';
+  myWave.innerHTML = '<span class="no-data">Record first above</span>';
+  statusEl.textContent = '';
+  statusEl.className = 'status';
+}
+
+// ── Google Cloud TTS ──
+async function callGoogleTTS(text) {
+  if (!apiKey) {
+    showStatus('Please enter your API key first', 'error');
+    return null;
+  }
+
+  const voiceName = voiceSelect.value;
+  const langCode = voiceName.substring(0, 5); // e.g. en-US
+  const gender = voiceSelect.selectedOptions[0].dataset.gender;
+
+  const body = {
+    input: { text },
+    voice: {
+      languageCode: langCode,
+      name: voiceName,
+      ssmlGender: gender
+    },
+    audioConfig: {
+      audioEncoding: 'MP3',
+      speakingRate: speed,
+      pitch: 0
     }
+  };
 
-    function showNotification(message) {
-      const el = document.getElementById('notification');
-      document.getElementById('notification').innerHTML = message;
-      el.style.display = 'block';
-      
-      setTimeout(() => {
-        el.style.display = 'hide';
-      }, 3000);
-    }
-  </script>
+  const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    const msg = err?.error?.message || `HTTP ${resp.status}`;
+    throw new Error(msg);
+  }
+
+  const data = await resp.json();
+  // data.audioContent is base64 encoded MP3
+  const audioBytes = atob(data.audioContent);
+  const arr = new Uint8Array(audioBytes.length);
+  for (let i = 0; i < audioBytes.length; i++) arr[i] = audioBytes.charCodeAt(i);
+  return new Blob([arr], { type: 'audio/mp3' });
+}
+
+async function playTTS() {
+  if (sentences.length === 0) { showStatus('Please enter text first', 'error'); return; }
+  if (!apiKey) { showStatus('Please enter your API key first', 'error'); return; }
+
+  // Check cache first
+  const cached = getCachedTTS();
+  if (cached) {
+    ttsBtn.classList.add('playing');
+    showStatus('Playing... (cached)', '');
+    const audio = new Audio(cached.url);
+    audio.play();
+    audio.onended = () => {
+      ttsBtn.classList.remove('playing');
+      playNativeBtn.disabled = false;
+      showStatus('Done — now try recording yourself', '');
+    };
+    return;
+  }
+
+  ttsBtn.classList.add('loading');
+  showStatus('Generating audio...', '');
+
+  try {
+    const blob = await callGoogleTTS(sentences[curIdx]);
+    if (!blob) { ttsBtn.classList.remove('loading'); return; }
+
+    const audioUrl = setCachedTTS(blob);
+
+    const audio = new Audio(audioUrl);
+    ttsBtn.classList.remove('loading');
+    ttsBtn.classList.add('playing');
+    showStatus('Playing...', '');
+
+    audio.play();
+    audio.onended = () => {
+      ttsBtn.classList.remove('playing');
+      playNativeBtn.disabled = false;
+      renderWaveform(nativeWave, 'native');
+      showStatus('Done — now try recording yourself', '');
+    };
+  } catch (err) {
+    ttsBtn.classList.remove('loading');
+    ttsBtn.classList.remove('playing');
+    showStatus(`TTS Error: ${err.message}`, 'error');
+    apiStatusEl.textContent = `✗ Error: ${err.message}`;
+    apiStatusEl.className = 'api-status error';
+  }
+}
+
+function replayNative() {
+  const cached = getCachedTTS();
+  if (!cached) return;
+  const audio = new Audio(cached.url);
+  showStatus('Playing native... (cached)', '');
+  audio.play();
+  audio.onended = () => showStatus('', '');
+}
+
+// ── Recording ──
+async function toggleRec() {
+  if (isRecording) { stopRec(); return; }
+  if (sentences.length === 0) { showStatus('Please enter text first', 'error'); return; }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      if (recUrl) URL.revokeObjectURL(recUrl);
+      recUrl = URL.createObjectURL(blob);
+      playMineBtn.disabled = false;
+      renderWaveform(myWave, 'mine');
+      showStatus('Recording done — compare below!', '');
+      stream.getTracks().forEach(t => t.stop());
+    };
+
+    mediaRecorder.start();
+    isRecording = true;
+    recordBtn.classList.add('recording');
+    recordBtn.querySelector('.label').textContent = 'Stop Recording';
+    recordBtn.querySelector('.sublabel').textContent = 'Press again to stop';
+    showStatus('🔴 Recording... read the sentence aloud', 'rec');
+  } catch (err) {
+    showStatus('Microphone access denied. Check your browser settings.', 'error');
+  }
+}
+
+function stopRec() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  isRecording = false;
+  recordBtn.classList.remove('recording');
+  recordBtn.querySelector('.label').textContent = 'Record My Voice';
+  recordBtn.querySelector('.sublabel').textContent = 'Microphone';
+}
+
+function playRec() {
+  if (!recUrl) return;
+  const audio = new Audio(recUrl);
+  showStatus('Playing my recording...', '');
+  audio.play();
+  audio.onended = () => showStatus('', '');
+}
+
+// ── Speed ──
+function setSpeed(s, btn) {
+  speed = s;
+  document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Helpers ──
+function showStatus(msg, cls) {
+  statusEl.textContent = msg;
+  statusEl.className = 'status' + (cls ? ' ' + cls : '');
+}
+
+function renderWaveform(container, type) {
+  const n = 60;
+  let html = `<div class="waveform-bars ${type}">`;
+  for (let i = 0; i < n; i++) {
+    const t = i / n;
+    const env = Math.exp(-Math.pow((t - 0.5) * 3, 2));
+    const noise = 0.3 + Math.random() * 0.7;
+    const h = Math.max(3, Math.round(env * noise * 30));
+    html += `<div class="bar" style="height:${h}px"></div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+</script>
 </body>
-
 </html>
